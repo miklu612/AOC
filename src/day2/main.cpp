@@ -44,12 +44,17 @@ int main() {
             std::vector<int> mistakes = {0};
             int i = -1;
             do {
-                // First iteration is to fill out the `mistakes` array with
-                // indexes. The following iterations will do the same checks but
-                // with the mistake indexes removed and incrementing the faults
-                // integer instead of adding them to the mistake vector.
+                // I don't know how this works, but it does. It looks like it's
+                // racing against how many mistakes it can find???
                 //
-                // It's horrendous, but it works.
+                // It finds a mistake and then breaks this while loop. Then it
+                // removes the first element and searches for more mistakes in a
+                // smaller vector, which it will then use on the larger vector? 
+                // 
+                // Is this an accidental brutal force approach?
+                //
+                // If this wasn't AOC, then I would 100% rewrite this, since this
+                // is weird, unreadable, and trash.
                 std::vector<int> filtered;
                 filtered.reserve(numbers.size());
                 if(i < mistakes.size() && i >= 0) {
