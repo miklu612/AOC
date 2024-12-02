@@ -45,6 +45,7 @@ int main() {
             int i = -1;
             do {
                 std::vector<int> filtered;
+                filtered.reserve(numbers.size());
                 if(i < mistakes.size() && i >= 0) {
                     std::copy(numbers.begin(), std::next(numbers.begin(), mistakes[i]), std::back_inserter(filtered));
                     std::copy(std::next(numbers.begin(), mistakes[i]+1), numbers.end(), std::back_inserter(filtered));
@@ -52,11 +53,6 @@ int main() {
                 else {
                     filtered = numbers;
                 }
-                std::cout << "Filtered: ";
-                for(int n : filtered) {
-                    std::cout << n << " ";
-                }
-                std::cout << "\n";
                 int faults = 0;
                 for(size_t j = 1 ; j < filtered.size() ; j++) {
                     if(growing && filtered[j-1] > filtered[j]) {
@@ -77,6 +73,9 @@ int main() {
                         }
                         faults += 1;
                     }
+                    if(faults > 0) {
+                        break;
+                    }
                 }
                 i += 1;
                 if(faults == 0) {
@@ -88,15 +87,9 @@ int main() {
                     }
                     answer_p2 += 1;
                     exit = true;
-                    std::cout << "Pass\n";
                     break;
                 }
             } while(i < mistakes.size());
-            std::cout << "Mistakes:\n";
-            for(int mistake : mistakes) {
-                std::cout << mistake << " ";
-            }
-            std::cout << "\n";
         }
     }
 
