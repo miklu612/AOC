@@ -44,6 +44,12 @@ int main() {
             std::vector<int> mistakes = {0};
             int i = -1;
             do {
+                // First iteration is to fill out the `mistakes` array with
+                // indexes. The following iterations will do the same checks but
+                // with the mistake indexes removed and incrementing the faults
+                // integer instead of adding them to the mistake vector.
+                //
+                // It's horrendous, but it works.
                 std::vector<int> filtered;
                 filtered.reserve(numbers.size());
                 if(i < mistakes.size() && i >= 0) {
