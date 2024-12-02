@@ -50,7 +50,7 @@ int main() {
     }
 
 
-#ifdef PART_ONE
+#ifndef PART_ONE
     std::cout << "Delta\tLeft\tRight\n";
     int64_t sum = 0;
     while(true) {
