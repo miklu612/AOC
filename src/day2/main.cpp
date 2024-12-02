@@ -2,6 +2,7 @@
 #include<fstream>
 #include<string>
 #include<optional>
+#include<array>
 
 
 int main() {
@@ -15,50 +16,46 @@ int main() {
     std::string line;
     int valid_lines = 0;
     while(std::getline(file, line)) {
-        int previous = 0;
-        std::string current = "";
-        bool is_valid = true;
-        std::optional<bool> increasing;
         // Not the best solution to fix the last digit not being check, but it works.
         line += " ";
-        for(char character : line) {
-            if(character == ' ') {
-                if(previous == 0) {
-                    previous = std::stoi(current);
+        for(bool increasing : std::array<bool, 2> {false, true}) {
+            int previous = 0;
+            std::string current = "";
+            int faults = 0;
+            for(char character : line) {
+                if(character == ' ') {
+                    if(previous == 0) {
+                        previous = std::stoi(current);
+                    }
+                    else {
+                        int number = std::stoi(current);
+                        if(std::abs(previous - number) > 3 || previous == number) {
+                            std::cout << "Failed: " << number << " " << previous << "\n";
+                            std::cout << "Reason: Difference too large\n";
+                            faults += 1;
+                        }
+                        else if(increasing && previous > number) {
+                            std::cout << "Failed: " << number << " " << previous << "\n";
+                            std::cout << "Reason: Expected increased value\n";
+                            faults += 1;
+                        }
+                        else if(!increasing && previous < number) {
+                            std::cout << "Failed: " << number << " " << previous << "\n";
+                            std::cout << "Reason: Expected decreased value\n";
+                            faults += 1;
+                        }
+                        previous = number;
+                    }
+                    current.clear();
                 }
                 else {
-                    int number = std::stoi(current);
-                    if(!increasing.has_value()) {
-                        increasing = previous < number;
-                    }
-                    if(std::abs(previous - number) > 3 || previous == number) {
-                        std::cout << "Failed: " << number << " " << previous << "\n";
-                        std::cout << "Reason: Difference too large\n";
-                        is_valid = false;
-                        break;
-                    }
-                    else if(increasing.value() && previous > number) {
-                        std::cout << "Failed: " << number << " " << previous << "\n";
-                        std::cout << "Reason: Expected increased value\n";
-                        is_valid = false;
-                        break;
-                    }
-                    else if(!increasing.value() && previous < number) {
-                        std::cout << "Failed: " << number << " " << previous << "\n";
-                        std::cout << "Reason: Expected decreased value\n";
-                        is_valid = false;
-                        break;
-                    }
-                    previous = number;
+                    current.push_back(character);
                 }
-                current.clear();
             }
-            else {
-                current.push_back(character);
+            if(faults == 0) {
+                valid_lines += 1;
+                break;
             }
-        }
-        if(is_valid) {
-            valid_lines += 1;
         }
     }
 
