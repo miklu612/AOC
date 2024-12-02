@@ -18,6 +18,7 @@ int main() {
 
 
     int answer_p1 = 0;
+    int answer_p2 = 0;
 
     std::string line;
     while(std::getline(file, line)) {
@@ -79,7 +80,13 @@ int main() {
                 }
                 i += 1;
                 if(faults == 0) {
-                    answer_p1 += 1;
+                    if(i == 0) {
+                        answer_p1 += 1;
+                        answer_p2 += 1;
+                        exit = true;
+                        break;
+                    }
+                    answer_p2 += 1;
                     exit = true;
                     std::cout << "Pass\n";
                     break;
@@ -93,7 +100,8 @@ int main() {
         }
     }
 
-    std::cout << answer_p1 << "\n";
+    std::cout << "Without safe clause: " << answer_p1 << "\n";
+    std::cout << "With safe clause: " << answer_p2 << "\n";
 
 
     file.close();
