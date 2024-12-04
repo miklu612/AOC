@@ -19,7 +19,7 @@ namespace StringUtil {
             }
             else {
 #ifndef MAX_SPEED_PLEASE
-                if(new_pos < start || new_pos > end) {
+                if(new_pos < start || new_pos >= end) {
                     throw std::exception("StringUtil::split bound error");
                 }
 #endif
