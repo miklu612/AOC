@@ -72,7 +72,6 @@ int main() {
 
     int answer_p1 = 0;
     int answer_p2 = 0;
-    std::vector<std::tuple<int, int, int>> start_positions;
     for(auto i = 0 ; i < lines.size() ; i++) {
         for(auto j = 0 ; j < lines[i].length() ; j++) {
             answer_p1 += check_character(lines, i, j);
