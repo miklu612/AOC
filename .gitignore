@@ -3,3 +3,4 @@ input.txt
 *.exe
 *.ilk
 *.pdb
+settings.json
