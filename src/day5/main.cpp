@@ -51,29 +51,47 @@ int main() {
     });
 
 
-    int answer = 0;
+    int answer_1 = 0;
+    int answer_2 = 0;
     for(auto update : updates) {
-        for(auto rule : ordering_rules) {
+        bool is_rule_breaking = false;
+        // Let's put a upper bound of 10000 to this infinite loop
+        for(int i = 0 ; i < 10000 ; i++) {
+            bool is_inner_breaking = false;
+            for(auto rule : ordering_rules) {
 
-            auto xpos = std::find(update.begin(), update.end(), rule.first);
-            auto ypos = std::find(update.begin(), update.end(), rule.second);
+                auto xpos = std::find(update.begin(), update.end(), rule.first);
+                auto ypos = std::find(update.begin(), update.end(), rule.second);
 
-            if(ypos == update.end()) {
-                continue;
+                if(ypos == update.end()) {
+                    continue;
+                }
+                else if(xpos == update.end()) {
+                    continue;
+                }
+                else if(xpos > ypos) {
+                    std::swap(*xpos, *ypos);
+                    is_rule_breaking = true;
+                    is_inner_breaking = true;
+                }
             }
-            else if(xpos == update.end()) {
-                continue;
+            if(!is_inner_breaking) {
+                break;
             }
-            else if(xpos > ypos) {
-                goto rule_break;
-            }
-
         }
-        answer += update.at(update.size()/2);
-rule_break:
-        continue;
+        for(auto num : update) {
+            std::cout << num << "\t";
+        }
+        std::cout << "\n";
+        if(!is_rule_breaking) {
+            answer_1 += update.at(update.size()/2);
+        }
+        else {
+            answer_2 += update.at(update.size()/2);
+        }
     }
-    std::cout << answer << "\n";
+    std::cout << "Answers 1: " << answer_1 << "\n";
+    std::cout << "Answers 2: " << answer_2 << "\n";
 
     }
     catch(std::exception e) {
