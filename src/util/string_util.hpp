@@ -7,6 +7,8 @@
 
 namespace StringUtil {
 
+    // Lesson learned, this code is broken and rewriting it is faster. Just
+    // gonna leave it here, since I used it previously.
     template<typename T>
     std::vector<std::string> split(std::string::iterator start, std::string::iterator end, T check) {
         std::vector<std::string> output;
@@ -40,6 +42,19 @@ namespace StringUtil {
         }
         return std::next(cur, 1);
     };
+
+    std::vector<std::string> split_by_character(std::string text, char character) {
+        auto iter = text.begin();
+        std::vector<std::string> output;
+        do {
+            auto last = iter;
+            iter = std::find(iter, text.end(), character);
+            output.push_back(std::string(last, iter));
+            std::advance(iter, 1);
+        }
+        while(iter < text.end());
+        return output;
+    }
 
 };
 
