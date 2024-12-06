@@ -1,5 +1,7 @@
 #include<iostream>
 #include<optional>
+#include<thread>
+#include<future>
 #include"../util/file_io.hpp"
 #include"../util/string_util.hpp"
 
@@ -179,13 +181,51 @@ int main() {
     }
 
     int done = 0;
-    for(auto block = std::next(unique_blocks.value().begin()) ; block < unique_blocks.value().end() ; std::advance(block, 1)) {
+    const int thread_count = 8;
+    using future_type = std::optional<std::vector<Vec2<int>>>;
+    std::vector<std::future<future_type>> threads;
+    threads.reserve(thread_count);
+    for(int i = 0 ; i < thread_count ; i++) {
+        threads.push_back(std::future<future_type>());
+    }
+    for(auto block = std::next(unique_blocks.value().begin()) ; block < unique_blocks.value().end() ; ) {
+        auto thread_iter = std::find_if(threads.begin(), threads.end(), [&done, &answer_2](auto& thread){
+            if(!thread.valid()) {
+                return true;
+            }
+            if(thread.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+                if(!thread.get().has_value()) {
+                    answer_2 += 1;
+                }
+                done += 1;
+                return true;
+            }
+            return false;
+        });
+        if(thread_iter == threads.end()) {
+            continue;
+        }
         std::cout << "Done: " << done << "/" << unique_blocks.value().size() << "\n";
-        done += 1;
         auto new_blocks = blocks;
         new_blocks.push_back(*block);
-        if(!run(guard, grid, new_blocks).has_value()) {
-            answer_2 += 1;
+
+        *thread_iter = std::async(&run, guard, grid, new_blocks);
+
+        //if(!run(guard, grid, new_blocks).has_value()) {
+        //    answer_2 += 1;
+        //}
+        std::advance(block, 1);
+    }
+
+    // Check the remaining threads
+    for(auto& thread : threads) {
+        if(thread.valid()) {
+            thread.wait();
+            if(!thread.get().has_value()) {
+                answer_2 += 1;
+            }
+            done += 1;
+            std::cout << "Done: " << done << "/" << unique_blocks.value().size() << "\n";
         }
     }
 
