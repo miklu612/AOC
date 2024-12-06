@@ -87,6 +87,45 @@ void visualize_board(const Guard& guard, const std::vector<Vec2<int>>& blocks, i
     std::cout << output;
 }
 
+std::vector<Vec2<int>> run(Guard guard, std::vector<std::vector<char>> grid, std::vector<Vec2<int>> blocks) {
+
+    int answer = 0;
+    const int loop_limit = 10'000;
+    std::vector<Vec2<int>> unique_blocks {
+        guard.position
+    };
+    for(int i = 0 ; i < loop_limit ; i++) {
+        std::cout << i << "\n";
+        const auto next_pos = guard.get_next_position();
+        const auto iter = std::find(blocks.begin(), blocks.end(), next_pos);
+        //std::cout << "\n\nIteration Start Board State\n";
+        //visualize_board(guard, blocks, grid[0].size(), grid.size());
+        if(iter != blocks.end()) {
+            guard.rotate_right();
+        }
+        else {
+            guard.position = next_pos;
+            const auto existing = std::find(unique_blocks.begin(), unique_blocks.end(), next_pos);
+            if(existing == unique_blocks.end()) {
+                if(next_pos.y >= 0 && next_pos.y < grid.size()) {
+                    if(next_pos.x >= 0 && next_pos.x < grid[next_pos.y].size()) {
+                        unique_blocks.push_back(next_pos);
+                    }
+                }
+            }
+        }
+        if(guard.position.y < 0 || guard.position.y >= grid.size()) {
+            break;
+        }
+        else if(guard.position.x < 0 || guard.position.x >= grid[guard.position.y].size()) {
+            break;
+        }
+    }
+
+    return unique_blocks;
+
+}
+
 int main() {
 
     std::string input = read_file("./input.txt");
@@ -130,39 +169,7 @@ int main() {
 
 
     // Run the simulation
-    int answer = 0;
-    const int loop_limit = 10'000;
-    std::vector<Vec2<int>> unique_blocks {
-        guard.position
-    };
-    for(int i = 0 ; i < loop_limit ; i++) {
-        std::cout << i << "\n";
-        const auto next_pos = guard.get_next_position();
-        const auto iter = std::find(blocks.begin(), blocks.end(), next_pos);
-        //std::cout << "\n\nIteration Start Board State\n";
-        //visualize_board(guard, blocks, grid[0].size(), grid.size());
-        if(iter != blocks.end()) {
-            guard.rotate_right();
-        }
-        else {
-            guard.position = next_pos;
-            const auto existing = std::find(unique_blocks.begin(), unique_blocks.end(), next_pos);
-            if(existing == unique_blocks.end()) {
-                if(next_pos.y >= 0 && next_pos.y < grid.size()) {
-                    if(next_pos.x >= 0 && next_pos.x < grid[next_pos.y].size()) {
-                        unique_blocks.push_back(next_pos);
-                    }
-                }
-            }
-        }
-        if(guard.position.y < 0 || guard.position.y >= grid.size()) {
-            break;
-        }
-        else if(guard.position.x < 0 || guard.position.x >= grid[guard.position.y].size()) {
-            break;
-        }
-    }
-
+    auto unique_blocks = run(guard, grid, blocks);
     for(auto unique_block : unique_blocks) {
         std::cout << unique_block.x << '\t' << unique_block.y << '\n';
     }
