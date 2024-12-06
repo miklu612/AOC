@@ -211,9 +211,6 @@ int main() {
 
         *thread_iter = std::async(&run, guard, grid, new_blocks, false);
 
-        //if(!run(guard, grid, new_blocks).has_value()) {
-        //    answer_2 += 1;
-        //}
         std::advance(block, 1);
     }
 
