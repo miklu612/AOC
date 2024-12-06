@@ -1,4 +1,5 @@
 #include<iostream>
+#include<optional>
 #include"../util/file_io.hpp"
 #include"../util/string_util.hpp"
 
@@ -87,7 +88,7 @@ void visualize_board(const Guard& guard, const std::vector<Vec2<int>>& blocks, i
     std::cout << output;
 }
 
-std::vector<Vec2<int>> run(Guard guard, std::vector<std::vector<char>> grid, std::vector<Vec2<int>> blocks) {
+std::optional<std::vector<Vec2<int>>> run(Guard guard, std::vector<std::vector<char>> grid, std::vector<Vec2<int>> blocks) {
 
     int answer = 0;
     const int loop_limit = 10'000;
@@ -95,7 +96,6 @@ std::vector<Vec2<int>> run(Guard guard, std::vector<std::vector<char>> grid, std
         guard.position
     };
     for(int i = 0 ; i < loop_limit ; i++) {
-        std::cout << i << "\n";
         const auto next_pos = guard.get_next_position();
         const auto iter = std::find(blocks.begin(), blocks.end(), next_pos);
         //std::cout << "\n\nIteration Start Board State\n";
@@ -115,14 +115,14 @@ std::vector<Vec2<int>> run(Guard guard, std::vector<std::vector<char>> grid, std
             }
         }
         if(guard.position.y < 0 || guard.position.y >= grid.size()) {
-            break;
+            return unique_blocks;
         }
         else if(guard.position.x < 0 || guard.position.x >= grid[guard.position.y].size()) {
-            break;
+            return unique_blocks;
         }
     }
 
-    return unique_blocks;
+    return std::optional<std::vector<Vec2<int>>>();
 
 }
 
@@ -170,11 +170,27 @@ int main() {
 
     // Run the simulation
     auto unique_blocks = run(guard, grid, blocks);
-    for(auto unique_block : unique_blocks) {
+    int answer_2 = 0;
+    if(!unique_blocks.has_value()) {
+        exit(-1);
+    }
+    for(auto unique_block : unique_blocks.value()) {
         std::cout << unique_block.x << '\t' << unique_block.y << '\n';
     }
 
-    std::cout << "Answer 1: " << unique_blocks.size() << "\n";
+    int done = 0;
+    for(auto block = std::next(unique_blocks.value().begin()) ; block < unique_blocks.value().end() ; std::advance(block, 1)) {
+        std::cout << "Done: " << done << "/" << unique_blocks.value().size() << "\n";
+        done += 1;
+        auto new_blocks = blocks;
+        new_blocks.push_back(*block);
+        if(!run(guard, grid, new_blocks).has_value()) {
+            answer_2 += 1;
+        }
+    }
+
+    std::cout << "Answer 1: " << unique_blocks.value().size() << "\n";
+    std::cout << "Answer 2: " << answer_2 << "\n";
 
     return 0;
 
