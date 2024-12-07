@@ -24,6 +24,9 @@ bool solve(const std::vector<unsigned long long>& input, unsigned long long goal
     for(int iteration = 0 ; iteration < iteration_max ; iteration++) {
         unsigned long long previous = input[0];
         for(int i = 0 ; i < input.size()-1 ; i++) {
+            if(previous > goal) {
+                break;
+            }
             const auto& operand = operands[i];
             unsigned long long current = input[i+1];
             if(operand == '+') {
