@@ -1,6 +1,7 @@
 #include<iostream>
 #include<cassert>
 #include<array>
+#include<future>
 #include"../util/string_util.hpp"
 #include"../util/file_io.hpp"
 
@@ -89,6 +90,8 @@ int main() {
 
         unsigned long long answer_1 = 0;
         unsigned long long answer_2 = 0;
+
+        std::array<std::tuple<std::future<bool>, unsigned long long, bool>, 8> thread_pool;
     
         for(const auto& line : lines) {
 
@@ -122,15 +125,85 @@ int main() {
                 iter = std::next(end);
             }
 
-            if(solve(input_numbers, expected_answer, true)) {
-                std::cout << "(Part 1) Correct: " << expected_answer << "\n";
-                answer_1 += expected_answer;
-            }
-            if(solve(input_numbers, expected_answer, false)) {
-                std::cout << "(Part 2) Correct: " << expected_answer << "\n";
-                answer_2 += expected_answer;
+            // Allocate threads. There probably could be a queue system, so the
+            // thread allocation doesn't lock up the parsing part, but this
+            // works fast enough.
+            bool thread_allocated_part_1 = false;
+            bool thread_allocated_part_2 = false;
+            while(!thread_allocated_part_1 || !thread_allocated_part_2) {
+                std::for_each(thread_pool.begin(), thread_pool.end(), 
+                    [&answer_1, &answer_2](auto& thread){
+                        auto& future = std::get<0>(thread);
+                        const auto& value = std::get<1>(thread);
+                        const auto& is_part_1 = std::get<2>(thread);
+                        if(future.valid()) {
+                            if(future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+                                auto result = future.get();
+                                if(is_part_1 && result) {
+                                    answer_1 += value;
+                                }
+                                else if(result) {
+                                    answer_2 += value;
+                                }
+                            }
+                        }
+                    });
+                auto iter = std::find_if(thread_pool.begin(), thread_pool.end(), [](const auto& thread){
+                    const auto& future = std::get<0>(thread);
+                    return !future.valid();
+                });
+                if(iter != thread_pool.end()) {
+                    if(!thread_allocated_part_1) {
+                        *iter = {
+                            std::async(solve, input_numbers, expected_answer, true),
+                            expected_answer, 
+                            true
+                        };
+                        thread_allocated_part_1 = true;
+                    }
+                    else {
+                        *iter = {
+                            std::async(solve, input_numbers, expected_answer, false),
+                            expected_answer, 
+                            false
+                        };
+                        thread_allocated_part_2 = true;
+                    }
+                }
             }
 
+            // if(solve(input_numbers, expected_answer, true)) {
+            //     std::cout << "(Part 1) Correct: " << expected_answer << "\n";
+            //     answer_1 += expected_answer;
+            // }
+            // if(solve(input_numbers, expected_answer, false)) {
+            //     std::cout << "(Part 2) Correct: " << expected_answer << "\n";
+            //     answer_2 += expected_answer;
+            // }
+
+        }
+
+        bool threads_remaining = true;
+        while(threads_remaining) {
+            threads_remaining = false;
+            std::for_each(thread_pool.begin(), thread_pool.end(), 
+                [&answer_1, &answer_2, &threads_remaining](auto& thread){
+                    auto& future = std::get<0>(thread);
+                    const auto& value = std::get<1>(thread);
+                    const auto& is_part_1 = std::get<2>(thread);
+                    if(future.valid()) {
+                        threads_remaining = true;
+                        if(future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+                            auto result = future.get();
+                            if(is_part_1 && result) {
+                                answer_1 += value;
+                            }
+                            else if(result) {
+                                answer_2 += value;
+                            }
+                        }
+                    }
+                });
         }
 
         std::cout << "Answer 1: " << answer_1 << "\n";
