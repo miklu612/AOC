@@ -11,7 +11,7 @@ bool solve(const std::vector<unsigned long long>& input, unsigned long long goal
     std::vector<char> operands(input.size()-1, '+');
     assert(input.size()-1 == operands.size());
 
-    int iteration_max = std::pow(3, operands.size()+1);
+    int iteration_max = std::pow(3, operands.size());
 
 
     for(int iteration = 0 ; iteration < iteration_max ; iteration++) {
