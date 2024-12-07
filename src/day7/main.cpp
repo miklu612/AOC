@@ -18,7 +18,7 @@ bool solve(const std::vector<unsigned long long>& input, unsigned long long goal
         unsigned long long previous = input[0];
         for(int i = 0 ; i < input.size()-1 ; i++) {
             const auto& operand = operands[i];
-            unsigned long long current = (unsigned long long) input[i+1];
+            unsigned long long current = input[i+1];
             if(operand == '+') {
                 previous += current;
             }
