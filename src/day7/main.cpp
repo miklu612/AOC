@@ -26,10 +26,17 @@ bool solve(const std::vector<unsigned long long>& input, unsigned long long goal
                 previous *= current;
             }
             else {
-                const std::string number_1 = std::to_string(previous);
-                const std::string number_2 = std::to_string(current);
-                const std::string number_3 = number_1 + number_2;
-                previous = std::stoull(number_3);
+                int divisor = 1;
+                for(int i = 0 ; i < 10 ; i++) {
+                    if(divisor > current) {
+                        break;
+                    }
+                    else {
+                        divisor *= 10;
+                    }
+                }
+                previous *= divisor;
+                previous += current;
             }
         }
         if(previous == goal) {
