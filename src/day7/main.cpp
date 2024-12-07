@@ -6,12 +6,19 @@
 
 
 // Challenge: No recursion
-bool solve(const std::vector<unsigned long long>& input, unsigned long long goal) {
+bool solve(const std::vector<unsigned long long>& input, unsigned long long goal, bool is_part_1) {
 
     std::vector<char> operands(input.size()-1, '+');
     assert(input.size()-1 == operands.size());
 
-    int iteration_max = std::pow(3, operands.size());
+    int iteration_max = 0;
+    if(is_part_1) {
+        iteration_max = std::pow(2, operands.size());
+    }
+    else {
+        iteration_max = std::pow(3, operands.size());
+    }
+
 
 
     for(int iteration = 0 ; iteration < iteration_max ; iteration++) {
@@ -53,8 +60,13 @@ bool solve(const std::vector<unsigned long long>& input, unsigned long long goal
                     break;
                 }
                 else if(operands[i] == '*'){
-                    operands[i] = '|';
-                    break;
+                    if(is_part_1) {
+                        operands[i] = '+';
+                    }
+                    else {
+                        operands[i] = '|';
+                        break;
+                    }
                 }
                 else {
                     operands[i] = '+';
@@ -71,7 +83,9 @@ int main() {
     try {
         auto input = read_file("input.txt");
         auto lines = StringUtil::split_by_character(input, '\n');
-        unsigned long long answer = 0;
+
+        unsigned long long answer_1 = 0;
+        unsigned long long answer_2 = 0;
     
         for(const auto& line : lines) {
 
@@ -105,14 +119,19 @@ int main() {
                 iter = std::next(end);
             }
 
-            if(solve(input_numbers, expected_answer)) {
-                std::cout << "Correct: " << expected_answer << "\n";
-                answer += expected_answer;
+            if(solve(input_numbers, expected_answer, true)) {
+                std::cout << "(Part 1) Correct: " << expected_answer << "\n";
+                answer_1 += expected_answer;
+            }
+            if(solve(input_numbers, expected_answer, false)) {
+                std::cout << "(Part 2) Correct: " << expected_answer << "\n";
+                answer_2 += expected_answer;
             }
 
         }
 
-        std::cout << "Answer 1: " << answer << "\n";
+        std::cout << "Answer 1: " << answer_1 << "\n";
+        std::cout << "Answer 2: " << answer_2 << "\n";
     }
 
     catch(std::exception e) {
