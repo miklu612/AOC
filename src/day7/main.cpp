@@ -46,7 +46,7 @@ bool solve(const std::vector<unsigned long long>& input, unsigned long long goal
             // Do a binary-esque increment of the operands vector
             //    +  ==  0
             //    *  ==  1
-            //    |  ==  3
+            //    |  ==  2
             for(int i = 0 ; i < operands.size() ; i++) {
                 if(operands[i] == '+') {
                     operands[i] = '*';
