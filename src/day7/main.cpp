@@ -11,7 +11,7 @@ bool solve(const std::vector<unsigned long long>& input, unsigned long long goal
     std::vector<char> operands(input.size()-1, '+');
     assert(input.size()-1 == operands.size());
 
-    int iteration_max = std::pow(2, operands.size()+1);
+    int iteration_max = std::pow(3, operands.size()+1);
 
 
     for(int iteration = 0 ; iteration < iteration_max ; iteration++) {
@@ -22,8 +22,14 @@ bool solve(const std::vector<unsigned long long>& input, unsigned long long goal
             if(operand == '+') {
                 previous += current;
             }
-            else {
+            else if(operand == '*') {
                 previous *= current;
+            }
+            else {
+                const std::string number_1 = std::to_string(previous);
+                const std::string number_2 = std::to_string(current);
+                const std::string number_3 = number_1 + number_2;
+                previous = std::stoull(number_3);
             }
         }
         if(previous == goal) {
@@ -33,9 +39,14 @@ bool solve(const std::vector<unsigned long long>& input, unsigned long long goal
             // Do a binary-esque increment of the operands vector
             //    +  ==  0
             //    *  ==  1
+            //    |  ==  3
             for(int i = 0 ; i < operands.size() ; i++) {
                 if(operands[i] == '+') {
                     operands[i] = '*';
+                    break;
+                }
+                else if(operands[i] == '*'){
+                    operands[i] = '|';
                     break;
                 }
                 else {
