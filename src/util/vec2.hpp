@@ -47,6 +47,11 @@ class Vec2 {
                 y >= (T)0 && y < h;
         }
 
+        void operator+=(const Vec2<T>& vector) {
+            x += vector.x;
+            y += vector.y;
+        }
+
         friend Vec2<T> operator/(const Vec2<T>& l, const T& r) {
             return Vec2<T>(l.x / r, l.y / r);
         }

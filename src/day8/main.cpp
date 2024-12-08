@@ -4,7 +4,6 @@
 #include"../util/string_util.hpp"
 #include"../util/vec2.hpp"
 
-
 class Antenna {
     public:
         Antenna() :
@@ -16,21 +15,17 @@ class Antenna {
         Vec2<int> position;
 };
 
-
-
 template<typename T>
-Vec2<T> get_antinode(const Vec2<T>& antenna_1, const Vec2<T>& antenna_2) {
+Vec2<T> get_antinode_vector(const Vec2<T>& antenna_1, const Vec2<T>& antenna_2) {
     const auto delta_position = antenna_2 - antenna_1;
-    const auto double_delta_position = delta_position * 2;
-    return antenna_1 + double_delta_position;
+    return delta_position;
 }
 
-template<typename T>
-std::vector<Antenna>::const_iterator get_existing_signal(const std::vector<Antenna>& signals, const Vec2<T>& pos) {
-    return std::find_if(signals.cbegin(), signals.cend(), 
-        [&pos](const auto& signal){
-            return signal.position.x == pos.x && signal.position.y == pos.y;
-        });
+bool part_1_check(const std::vector<Vec2<int>>& antinodes, const Vec2<int>& position, int w, int h) {
+    if(!position.within_box(w, h)) {
+        return false;
+    }
+    return std::find(antinodes.cbegin(), antinodes.cend(), position) == antinodes.cend();
 }
 
 
@@ -61,8 +56,10 @@ int main() {
     const int world_height = lines.size();
 
     int answer_1 = 0;
+    int answer_2 = 0;
 
     std::vector<Vec2<int>> anti_nodes;
+    std::vector<Vec2<int>> part_1_antinodes;
 
     for(auto unique_signal : unique_signals) {
 
@@ -84,22 +81,35 @@ int main() {
                 }
                 std::cout << "Calculating antinode positions\n";
 
-                const auto antinode_1 = get_antinode(antenna->position, next_antenna->position);
-                const auto antinode_2 = get_antinode(next_antenna->position, antenna->position);
+                const auto antinode_vector_1 = get_antinode_vector(antenna->position, next_antenna->position);
+                const auto antinode_vector_2 = get_antinode_vector(next_antenna->position, antenna->position);
 
-                if(antinode_1.within_box(world_width, world_height)) {
-                    auto existing_antinode = std::find(anti_nodes.begin(), anti_nodes.end(), antinode_1);
-                    if(existing_antinode == anti_nodes.end()) {
-                        anti_nodes.push_back(antinode_1);
-                        answer_1 += 1;
-                    }
+                if(part_1_check(part_1_antinodes, antinode_vector_1 + next_antenna->position, world_width, world_height)) {
+                    part_1_antinodes.push_back(antinode_vector_1 + next_antenna->position);
+                    answer_1 += 1;
                 }
-                if(antinode_2.within_box(world_width, world_height)) {
-                    auto existing_antinode = std::find(anti_nodes.begin(), anti_nodes.end(), antinode_2);
-                    if(existing_antinode == anti_nodes.end()) {
-                        anti_nodes.push_back(antinode_2);
-                        answer_1 += 1;
+                if(part_1_check(part_1_antinodes, antinode_vector_2 + antenna->position, world_width, world_height)) {
+                    part_1_antinodes.push_back(antinode_vector_2 + antenna->position);
+                    answer_1 += 1;
+                }
+
+                auto position_1 = antinode_vector_1 + antenna->position;
+                while(position_1.within_box(world_width, world_height)) {
+                    if(std::find(anti_nodes.begin(), anti_nodes.end(), position_1) == anti_nodes.end()) {
+                        answer_2 += 1;
+                        anti_nodes.push_back(position_1);
                     }
+                    anti_nodes.push_back(position_1);
+                    position_1 += antinode_vector_1;
+                }
+
+                auto position_2 = antinode_vector_2 + next_antenna->position;
+                while(position_2.within_box(world_width, world_height)) {
+                    if(std::find(anti_nodes.begin(), anti_nodes.end(), position_2) == anti_nodes.end()) {
+                        answer_2 += 1;
+                        anti_nodes.push_back(position_2);
+                    }
+                    position_2 += antinode_vector_2;
                 }
 
                 next_antenna = std::find_if(std::next(next_antenna), antennas.end(), 
@@ -133,7 +143,7 @@ no_dot_print:
     }
 
     std::cout << "Answer 1: " << answer_1 << "\n";
-    std::cout << "Answer 2: " << "Not implemented" << "\n";
+    std::cout << "Answer 2: " << answer_2 << "\n";
 
 
     return 0;
