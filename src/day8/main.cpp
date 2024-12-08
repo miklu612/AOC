@@ -76,9 +76,6 @@ int main() {
                 });
 
             while(next_antenna < antennas.end()) {
-                if(next_antenna >= antennas.end()) {
-                    break;
-                }
                 std::cout << "Calculating antinode positions\n";
 
                 const auto antinode_vector_1 = get_antinode_vector(antenna->position, next_antenna->position);
