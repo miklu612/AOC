@@ -99,7 +99,6 @@ int main() {
                         answer_2 += 1;
                         anti_nodes.push_back(position_1);
                     }
-                    anti_nodes.push_back(position_1);
                     position_1 += antinode_vector_1;
                 }
 
