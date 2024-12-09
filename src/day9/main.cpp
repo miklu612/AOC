@@ -49,7 +49,6 @@ int main() {
 
     try {
         auto input = read_file("input.txt");
-        assert(input.length() % 2 == 0);
 
         if(input.back() == '\n') {
             input.pop_back();
