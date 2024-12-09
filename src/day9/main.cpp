@@ -85,15 +85,6 @@ class Block {
                             }
                             else if(current->size < first->size) {
 
-                                while(first->next_block->is_allocated == false) {
-                                    if(first->next_block == nullptr) {
-                                        break;
-                                    }
-                                    first->size += first->next_block->size;
-                                    first->next_block->next_block->previous_block = first;
-                                    first->next_block = first->next_block->next_block;
-                                }
-
                                 // Make a new entry
                                 std::shared_ptr<Block> new_block = std::make_shared<Block>();
                                 new_block->id = current->id;
