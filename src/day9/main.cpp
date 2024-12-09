@@ -85,6 +85,15 @@ class Block {
                             }
                             else if(current->size < first->size) {
 
+                                while(first->next_block->is_allocated == false) {
+                                    if(first->next_block == nullptr) {
+                                        break;
+                                    }
+                                    first->size += first->next_block->size;
+                                    first->next_block->next_block->previous_block = first;
+                                    first->next_block = first->next_block->next_block;
+                                }
+
                                 // Make a new entry
                                 std::shared_ptr<Block> new_block = std::make_shared<Block>();
                                 new_block->id = current->id;
@@ -113,21 +122,21 @@ class Block {
 
                 // Do an actual defragmentation of the entries. e.g. remove
                 // multiple empty entries
-                auto new_ptr = next_block;
-                while(new_ptr != nullptr && new_ptr->next_block != nullptr) {
-                    if(new_ptr->is_allocated == true) {
-                        new_ptr = new_ptr->next_block;
-                        continue;
-                    }
-                    else if(new_ptr->next_block->is_allocated == true) {
-                        new_ptr = new_ptr->next_block;
-                        continue;
-                    }
-                    // Defragment
-                    new_ptr->size += new_ptr->next_block->size;
-                    new_ptr->next_block = new_ptr->next_block->next_block;
-                    changed = true;
-                }
+                // auto new_ptr = next_block;
+                // while(new_ptr != nullptr && new_ptr->next_block != nullptr) {
+                //     if(new_ptr->is_allocated == true) {
+                //         new_ptr = new_ptr->next_block;
+                //         continue;
+                //     }
+                //     else if(new_ptr->next_block->is_allocated == true) {
+                //         new_ptr = new_ptr->next_block;
+                //         continue;
+                //     }
+                //     // Defragment
+                //     new_ptr->size += new_ptr->next_block->size;
+                //     new_ptr->next_block = new_ptr->next_block->next_block;
+                //     changed = true;
+                // }
 
             }
             std::cout << "Defragment done\n";
