@@ -3,165 +3,46 @@
 #include<cassert>
 #include<iostream>
 #include<map>
+#include<array>
 
 const unsigned int gc_empty_space = UINT_MAX;
+const unsigned int gc_only_sub_entries = UINT_MAX-1;
 
-class Block {
+using IDInt = uint64_t;
 
+class SubEntry {
+    public:
+        uint8_t size;
+        IDInt id;
+};
+
+class Entry {
     public:
 
-        Block deep_copy() {
-            Block output = *this;
-            if(output.next_block != nullptr) {
-                output.next_block = std::make_shared<Block>(output.next_block->deep_copy());
-            }
-            return output;
+        Entry(uint8_t size, IDInt id) : size(size), id(id) {
         }
 
-        std::vector<unsigned int> to_vector() {
-            Block* next = this;
-            std::vector<unsigned int> output;
-            while(next != nullptr) {
-                if(next->is_allocated) {
-                    output.insert(output.end(), next->size, next->id);
-                }
-                else {
-                    output.insert(output.end(), next->size, gc_empty_space);
-                }
-                if(next->next_block == nullptr) {
-                    break;
-                }
-                next = next->next_block.get();
+        void addSubEntry(uint8_t se_size, IDInt se_id) {
+            if(se_size > size) {
+                std::cout << (int) se_size << "\t" << (int) size << "\n";
+                throw std::exception("Ran out of space\n");
             }
-            return output;
+            size -= se_size;
+            sub_entries[sub_entry_index].id = se_id;
+            sub_entries[sub_entry_index].size = se_size;
+            sub_entry_index += 1;
+            if(size == 0) {
+                id = gc_only_sub_entries;
+            }
         }
 
-        void print() {
-            Block* block = this;
-            while(block != nullptr) {
-                for(int i = 0 ; i < block->size ; i++) {
-                    if(block->is_allocated) {
-                        std::cout << block->id;
-                    }
-                    else {
-                        std::cout << ".";
-                    }
-                }
-                block = block->next_block.get();
-            }
-            std::cout << "\n";
-        }
+        uint8_t size;
+        IDInt id;
 
-        void defragment() {
-            bool changed = true;
-            std::cout << "Defragmenting\n";
-            while(changed) {
-                changed = false;
-                auto current = get_last();
-                while(current != nullptr) {
-                    if(current->previous_block.use_count() == 0) {
-                        break;
-                    }
-                    if(current->is_allocated) {
-                        auto first = next_block;
-                        while(true) {
-                            if(first == current) {
-                                break;
-                            }
-                            else if(first == nullptr) {
-                                std::cout << first << "\t" << current << "\n";
-                                throw std::exception("Couldn't find slot");
-                            }
-                            else if(first->is_allocated){
-                                first = first->next_block;
-                                continue;
-                            }
-                            else if(first->size == current->size) {
-                                std::swap(first->id, current->id);
-                                std::swap(first->size, current->size);
-                                std::swap(first->is_allocated, current->is_allocated);
-                                changed = true;
-                                break;
-                            }
-                            else if(current->size < first->size) {
+        // When parsing, these entries are done first and then the actual entry.
+        std::array<SubEntry, 9> sub_entries;
+        uint8_t sub_entry_index = 0;
 
-                                // Make a new entry
-                                std::shared_ptr<Block> new_block = std::make_shared<Block>();
-                                new_block->id = current->id;
-                                new_block->size = current->size;
-                                new_block->is_allocated = current->is_allocated;
-                                new_block->previous_block = first->previous_block;
-                                new_block->next_block = first;
-
-                                first->previous_block.lock()->next_block = new_block;
-                                first->previous_block = new_block;
-                                first->size -= current->size;
-
-                                current->is_allocated = false;
-                                changed = true;
-                                break;
-
-                            }
-                            else {
-                                first = first->next_block;
-                                continue;
-                            }
-                        }
-                    }
-                    current = current->previous_block.lock();
-                }
-
-                // Do an actual defragmentation of the entries. e.g. remove
-                // multiple empty entries
-                // auto new_ptr = next_block;
-                // while(new_ptr != nullptr && new_ptr->next_block != nullptr) {
-                //     if(new_ptr->is_allocated == true) {
-                //         new_ptr = new_ptr->next_block;
-                //         continue;
-                //     }
-                //     else if(new_ptr->next_block->is_allocated == true) {
-                //         new_ptr = new_ptr->next_block;
-                //         continue;
-                //     }
-                //     // Defragment
-                //     new_ptr->size += new_ptr->next_block->size;
-                //     new_ptr->next_block = new_ptr->next_block->next_block;
-                //     changed = true;
-                // }
-
-            }
-            std::cout << "Defragment done\n";
-        }
-
-
-        std::shared_ptr<Block> get_last() {
-            if(next_block == nullptr) {
-                throw std::exception("Expected at least one child\n");
-            }
-            std::shared_ptr<Block> next = next_block;
-            while(next->next_block != nullptr) {
-                next = next->next_block;
-            }
-            return next;
-        }
-
-        int get_depth() {
-            std::shared_ptr<Block> next = next_block;
-            int i = 0;
-            for(; ; i++) {
-                if(next->next_block == nullptr) {
-                    break;
-                }
-                next = next->next_block;
-            }
-            return i;
-        }
-
-        unsigned int id;
-        bool is_allocated;
-        unsigned int size;
-        std::shared_ptr<Block> next_block;
-        std::weak_ptr<Block> previous_block;
 };
 
 int main() {
@@ -174,82 +55,113 @@ int main() {
             input.pop_back();
         }
 
-        std::shared_ptr<Block> root_block = std::make_shared<Block>();
-        std::shared_ptr<Block> next = root_block;
-        std::shared_ptr<Block> previous = nullptr;
+        std::vector<Entry> entries;
+        entries.reserve(input.size());
 
-        int id = 0;
         for(int i = 0 ; i < input.length() ; i++) {
-            if(input[i] < '0' || input[i] > '9') {
-                std::cout << "Invalid data found: '" << input[i] << "'\n";
-                std::cout << "Breaking and hoping it wasn't important\n";
-                break;
-            }
-            if(i%2 == 0) {
-                next->id = id;
-                next->is_allocated = true;
-                next->size = input[i]-'0';
-                next->previous_block = previous;
-                if(i+1 < input.length()) {
-                    next->next_block = std::make_shared<Block>();
-                }
-                previous = next;
-                next = next->next_block;
-                id += 1;
+            if(i%2) {
+                entries.emplace_back(input[i]-'0', gc_empty_space);
             }
             else {
-                next->id = 0;
-                next->is_allocated = false;
-                next->size = input[i]-'0';
-                next->previous_block = previous;
-                if(i+1 < input.length()) {
-                    next->next_block = std::make_shared<Block>();
-                }
-                previous = next;
-                next = next->next_block;
+                entries.emplace_back(input[i]-'0', i/2);
             }
         }
 
+        auto part_2_entries = entries;
 
-        auto vectorized_blocks = root_block->to_vector();
-        int j = 0;
-        for(int i = vectorized_blocks.size()-1 ; i >= 0 ; i--) {
-            if(vectorized_blocks[i] == gc_empty_space) {
+        // Part 1
+        for(int i = entries.size()-1 ; i >= 0 ; i--) {
+            if(entries[i].id == gc_empty_space) {
                 continue;
             }
-            else {
-                for(; j < i ; j++) {
-                    if(vectorized_blocks[j] == gc_empty_space) {
-                        std::swap(vectorized_blocks[j], vectorized_blocks[i]);
-                        break;
-                    }
+            const int previous_size = entries[i].size;
+            auto entry = entries.begin();
+            const auto end = std::next(entries.begin(), i);
+            while(entry < end) {
+                entry = std::find_if(std::next(entry), end, [](auto const& entry){
+                    return 
+                        entry.id == gc_empty_space &&
+                        entry.size > 0;
+                });
+                if(entry >= end) {
+                    break;
+                }
+                if(entries[i].size <= entry->size) {
+                    entry->addSubEntry(entries[i].size, entries[i].id);
+                    entries[i].id = gc_empty_space;
+                    break;
+                }
+                else {
+                    entries[i].size -= entry->size;
+                    entry->addSubEntry(entry->size, entries[i].id);
                 }
             }
         }
-
         unsigned long long checksum_part_1 = 0;
-        for(unsigned int i = 0 ; i < vectorized_blocks.size() ; i++) {
-            if(vectorized_blocks[i] == gc_empty_space) {
-                break;
+        IDInt id = 0;
+        for(auto entry : entries) {
+            for(int i = 0 ; i < entry.sub_entry_index ; i++) {
+                for(int j = 0 ; j < entry.sub_entries[i].size ; j++) {
+                    checksum_part_1 += entry.sub_entries[i].id * id;
+                    id += 1;
+                }
             }
-            checksum_part_1 += vectorized_blocks[i] * i;
+            if(entry.id != gc_empty_space) {
+                for(int i = 0 ; i < entry.size ; i++) {
+                    checksum_part_1 += entry.id * id;
+                    id += 1;
+                }
+            }
         }
 
 
-        root_block->defragment();
-        const auto defragmented_vectorized_blocks = root_block->to_vector();
-        unsigned long long checksum_part_2 = 0;
-        for(unsigned int i = 0 ; i < defragmented_vectorized_blocks.size() ; i++) {
-            if(defragmented_vectorized_blocks[i] == gc_empty_space) {
+        // Part 2
+        for(int i = part_2_entries.size()-1 ; i >= 0 ; i--) {
+            if(part_2_entries[i].id == gc_empty_space || part_2_entries[i].id == gc_only_sub_entries) {
                 continue;
             }
-            checksum_part_2 += defragmented_vectorized_blocks[i] * i;
+            const int previous_size = part_2_entries[i].size;
+            auto entry = part_2_entries.begin();
+            const auto end = std::next(part_2_entries.begin(), i);
+            while(entry < end) {
+                entry = std::find_if(std::next(entry), end, [&part_2_entries, &i](auto const& entry){
+                    return 
+                        entry.id == gc_empty_space &&
+                        entry.size >= part_2_entries[i].size;
+                });
+                if(entry >= end) {
+                    break;
+                }
+                entry->addSubEntry(part_2_entries[i].size, part_2_entries[i].id);
+                part_2_entries[i].id = gc_empty_space;
+                break;
+            }
         }
 
+        unsigned long long checksum_part_2 = 0;
+        id = 0;
+        for(auto entry : part_2_entries) {
+            for(int i = 0 ; i < entry.sub_entry_index ; i++) {
+                for(int j = 0 ; j < entry.sub_entries[i].size ; j++) {
+                    checksum_part_2 += entry.sub_entries[i].id * id;
+                    id += 1;
+                }
+            }
+            if(entry.id != gc_empty_space && entry.id != gc_only_sub_entries) {
+                for(int i = 0 ; i < entry.size ; i++) {
+                    checksum_part_2 += entry.id * id;
+                    id += 1;
+                }
+            }
+            else {
+                for(int i = 0 ; i < entry.size ; i++) {
+                    id += 1;
+                }
+            }
+        }
 
-        std::cout << "Answer 1: " << checksum_part_1 << "\n";
-        std::cout << "Answer 2: " << checksum_part_2 << "\n";
-
+        std::cout << "Part 1: " << checksum_part_1 << "\n";
+        std::cout << "Part 2: " << checksum_part_2 << "\n";
 
     }
     catch(std::exception e) {
