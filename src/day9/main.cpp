@@ -70,30 +70,30 @@ int main() {
         auto part_2_entries = entries;
 
         // Part 1
+        auto part_1_entry = entries.begin();
         for(int i = entries.size()-1 ; i >= 0 ; i--) {
             if(entries[i].id == gc_empty_space) {
                 continue;
             }
             const int previous_size = entries[i].size;
-            auto entry = entries.begin();
             const auto end = std::next(entries.begin(), i);
-            while(entry < end) {
-                entry = std::find_if(std::next(entry), end, [](auto const& entry){
+            while(part_1_entry < end) {
+                part_1_entry = std::find_if(part_1_entry, end, [](auto const& entry){
                     return 
                         entry.id == gc_empty_space &&
                         entry.size > 0;
                 });
-                if(entry >= end) {
+                if(part_1_entry >= end) {
                     break;
                 }
-                if(entries[i].size <= entry->size) {
-                    entry->addSubEntry(entries[i].size, entries[i].id);
+                if(entries[i].size <= part_1_entry->size) {
+                    part_1_entry->addSubEntry(entries[i].size, entries[i].id);
                     entries[i].id = gc_empty_space;
                     break;
                 }
                 else {
-                    entries[i].size -= entry->size;
-                    entry->addSubEntry(entry->size, entries[i].id);
+                    entries[i].size -= part_1_entry->size;
+                    part_1_entry->addSubEntry(part_1_entry->size, entries[i].id);
                 }
             }
         }
