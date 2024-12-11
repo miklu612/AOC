@@ -47,6 +47,12 @@ class Vec2 {
                 y >= (T)0 && y < h;
         }
 
+        constexpr bool within_box(const Vec2<T>& box) const {
+            return
+                x >= (T)0 && x < box.x &&
+                y >= (T)0 && y < box.y;
+        }
+
         void operator+=(const Vec2<T>& vector) {
             x += vector.x;
             y += vector.y;
