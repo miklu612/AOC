@@ -4,40 +4,10 @@
 #include"../util/string_util.hpp"
 
 using IntType = unsigned long long;
-const int cache_depth = 3;
+using CountType = unsigned long long;
 
 
-IntType solve(IntType number, int depth=0, int limit=0) {
-    if(depth >= limit) {
-        return 1;
-    }
-    else if(number == 0) {
-        if(depth+4 < limit) {
-            return 
-                solve(2, depth+4, limit) +
-                solve(0, depth+4, limit) +
-                solve(2, depth+4, limit) +
-                solve(4, depth+4, limit);
-        }
-        else {
-            return solve(1, depth+1, limit);
-        }
-    }
-    else if(number >= 10){
-        // Weird math stuff that I figured out by messing with logarithms.
-        const auto power = (IntType) std::floor(std::log10(number));
-        if(power % 2 == 1) {
-            const IntType modulo_op = std::pow(10, std::ceil(power / 2))*10;
-            const IntType lower = number % modulo_op;
-            const IntType higher = (number - lower) / (modulo_op);
-            IntType answer = 0;
-            answer += solve(higher, depth+1, limit);
-            answer += solve(lower, depth+1, limit);
-            return answer;
-        }
-    }
-    return solve(number*2024, depth+1, limit);
-}
+
 
 int main() {
 
@@ -50,21 +20,49 @@ int main() {
             return std::stoull(str);
         });
 
-        std::cout << digits.size() << "\n";
-
-        unsigned long stones_1 = 0;
+        CountType answer_1 = 0;
+        CountType answer_2 = 0;
         for(auto digit : digits) {
-            stones_1 += solve(digit, 0, 25);
+            std::map<IntType, CountType> freq_map = {
+                {digit, (CountType) 1}
+            };
+            for(int i = 0 ; i < 75 ; i++) {
+                std::map<IntType, CountType> next_freq_map;
+                for(auto& value_pair : freq_map) {
+                    const auto value = value_pair.first;
+                    if(value == 0) {
+                        next_freq_map[1] += 1 * value_pair.second;
+                        continue;
+                    }
+                    else if(value >= 10) {
+                        // Weird math stuff that I figured out by messing with logarithms.
+                        const auto power = (IntType) std::floor(std::log10(value));
+                        if(power % 2 == 1) {
+                            const IntType modulo_op = std::pow(10, std::ceil(power / 2))*10;
+                            const IntType lower = value % modulo_op;
+                            const IntType higher = (value - lower) / (modulo_op);
+                            next_freq_map[lower] += 1 * value_pair.second;
+                            next_freq_map[higher] += 1 * value_pair.second;
+                            continue;
+                        }
+                    }
+                    next_freq_map[value*2024] += 1 * value_pair.second;
+                }
+                freq_map = next_freq_map;
+                if(i == 24) {
+                    for(auto entry : freq_map) {
+                        answer_1 += entry.second;
+                    }
+                }
+            }
+            for(auto entry : freq_map) {
+                answer_2 += entry.second;
+            }
         }
 
-        unsigned long stones_2 = 0;
-        //for(auto digit : digits) {
-        //    std::cout << digit << "\n";
-        //    stones_2 += solve(digit, 0, 75);
-        //}
+        std::cout << "Answer 1: " << answer_1 << "\n";
+        std::cout << "Answer 2: " << answer_2 << "\n";
 
-        std::cout << "Answer 1: " << stones_1 << "\n";
-        std::cout << "Answer 2: " << stones_2 << "\n";
 
     }
     catch(std::exception e) {
