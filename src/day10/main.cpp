@@ -31,6 +31,17 @@ class PathNode {
             }
         }
 
+        int get_answer_part_2() {
+            if(value == '0') {
+                int answer = 0;
+                get_incrementing_part_2(answer);
+                return answer;
+            }
+            else {
+                return 0;
+            }
+        }
+
         void get_incrementing(int& answer, std::vector<std::weak_ptr<PathNode>>& visited) {
             for(auto ptr : {up, down, left, right}) {
                 if(ptr.use_count() == 0) {
@@ -49,6 +60,22 @@ class PathNode {
                         continue;
                     }
                     ptr.lock()->get_incrementing(answer, visited);
+                }
+            }
+        }
+
+        void get_incrementing_part_2(int& answer) {
+            for(auto ptr : {up, down, left, right}) {
+                if(ptr.use_count() == 0) {
+                    continue;
+                }
+                int ptr_value = ptr.lock()->value;
+                if(ptr_value == value+1) {
+                    if(ptr_value == '9') {
+                        answer += 1;
+                        continue;
+                    }
+                    ptr.lock()->get_incrementing_part_2(answer);
                 }
             }
         }
@@ -88,17 +115,15 @@ class PathMatrix {
             return iter->second;
         }
 
-        int get_answer() {
-            int answer = 0;
+        void solve() {
+            int answer_part_1 = 0;
+            int answer_part_2 = 0;
             for(auto entry : matrix) {
-                const auto return_value = entry.second->get_answer();
-                if(return_value != 0) {
-                    std::cout << "Answer: " << return_value << "\n";
-                    std::cout << entry.first << "\n";
-                }
-                answer += return_value;
+                answer_part_1 += entry.second->get_answer();
+                answer_part_2 += entry.second->get_answer_part_2();
             }
-            return answer;
+            std::cout << "Answer 1: " << answer_part_1 << "\n";
+            std::cout << "Answer 2: " << answer_part_2 << "\n";
         }
 
         std::vector<std::pair<Vec2<int>, std::shared_ptr<PathNode>>> matrix;
@@ -142,9 +167,7 @@ int main() {
             }
         }
 
-        std::cout << path_matrix.get_answer();
-
-
+        path_matrix.solve();
 
     }
     catch(std::exception e) {
