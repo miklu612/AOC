@@ -58,10 +58,7 @@ class Plot {
 
                     const auto existing = std::find_if(vertical.begin(), vertical.end(), 
                         [&perimeter_tile](const auto& side){
-                            return std::find_if(side.begin(), side.end(), 
-                                [&perimeter_tile](const auto& tile){
-                                    return perimeter_tile == tile;
-                                }) != side.end();
+                            return std::find(side.begin(), side.end(), perimeter_tile) != side.end();
                         }) != vertical.end();
 
                     if(existing) {
@@ -71,7 +68,7 @@ class Plot {
                     bool handle_up = true;
                     bool handle_down = true;
                     std::vector<std::pair<Vec2<IntType>, Vec2<IntType>>> side{perimeter_tile};
-                    for(IntType i = 1 ; i < 1000 ; i++) {
+                    for(IntType i = 1 ; handle_up || handle_down ; i++) {
                         const auto up = std::find_if(perimeter.begin(), perimeter.end(), 
                             [&perimeter_tile, &i](const auto& tile){
                                 const auto delta_first = perimeter_tile.first + Vec2<IntType>(0, 1) * i;
@@ -84,20 +81,17 @@ class Plot {
                                 const auto delta_second = perimeter_tile.second + Vec2<IntType>(0, -1) * i;
                                 return delta_first == tile.first && delta_second == tile.second;
                             });
-                        if(up == perimeter.end()) {
-                            handle_up = false;
-                        } 
-                        else if(handle_up) {
+                        if(up != perimeter.end() && handle_up) {
                             side.push_back(*up);
-                        }
-                        if(down == perimeter.end()) {
-                            handle_down = false;
                         } 
-                        else if(handle_down) {
-                            side.push_back(*down);
+                        else {
+                            handle_up = false;
                         }
-                        if(!handle_down && !handle_up) {
-                            break;
+                        if(down != perimeter.end() && handle_down) {
+                            side.push_back(*down);
+                        } 
+                        else {
+                            handle_down = false;
                         }
                     }
                     vertical.push_back(side);
@@ -109,10 +103,7 @@ class Plot {
 
                     const auto existing = std::find_if(horizontal.begin(), horizontal.end(), 
                         [&perimeter_tile](const auto& side){
-                            return std::find_if(side.begin(), side.end(), 
-                                [&perimeter_tile](const auto& tile){
-                                    return perimeter_tile == tile;
-                                }) != side.end();
+                            return std::find(side.begin(), side.end(), perimeter_tile) != side.end();
                         }) != horizontal.end();
 
                     if(existing) {
@@ -122,7 +113,7 @@ class Plot {
                     bool handle_right = true;
                     bool handle_left = true;
                     std::vector<std::pair<Vec2<IntType>, Vec2<IntType>>> vector{perimeter_tile};
-                    for(IntType i = 1 ; i < 1000 ; i++) {
+                    for(IntType i = 1 ; handle_left || handle_right ; i++) {
                         const auto right = std::find_if(perimeter.begin(), perimeter.end(), 
                             [&perimeter_tile, &i](const auto& tile){
                                 const auto delta_first = perimeter_tile.first + Vec2<IntType>(1, 0) * i;
@@ -135,20 +126,17 @@ class Plot {
                                 const auto delta_second = perimeter_tile.second + Vec2<IntType>(-1, 0) * i;
                                 return delta_first == tile.first && delta_second == tile.second;
                             });
-                        if(right == perimeter.end()) {
-                            handle_right = false;
-                        } 
-                        else if(handle_right) {
+                        if(right != perimeter.end() && handle_right) {
                             vector.push_back(*right);
-                        }
-                        if(left == perimeter.end()) {
-                            handle_left = false;
                         } 
-                        else if(handle_left) {
-                            vector.push_back(*left);
+                        else {
+                            handle_right = false;
                         }
-                        if(!handle_left && !handle_right) {
-                            break;
+                        if(left != perimeter.end() && handle_left) {
+                            vector.push_back(*left);
+                        } 
+                        else {
+                            handle_left = false;
                         }
                     }
                     horizontal.push_back(vector);
