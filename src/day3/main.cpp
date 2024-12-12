@@ -64,14 +64,15 @@ int main() {
 
     std::cout << input << "\n";
 
-    int answer = 0;
+    int answer_1 = 0;
+    int answer_2 = 0;
     bool is_enabled = true;
     while(iterator != input.end()) {
         // I'm sorry, but assembly has broken my brain.
 loop_start:
         // std::cout << *iterator << "\n";
 
-        if(is_enabled && has_mul_instruction(iterator, input.end())) {
+        if(has_mul_instruction(iterator, input.end())) {
             std::advance(iterator, std::string("mul").length());
             std::cout << "First round of tests passed\n";
 
@@ -114,7 +115,10 @@ loop_start:
 
             int first_digit = std::stoi(first_digit_str);
             int second_digit = std::stoi(second_digit_str);
-            answer += first_digit * second_digit;
+            answer_1 += first_digit * second_digit;
+            if(is_enabled) {
+                answer_2 += first_digit * second_digit;
+            }
         }
 
         else if(has_dont_instruction(iterator, input.end())) {
@@ -136,7 +140,8 @@ loop_start:
     }
 
 end_program:
-    std::cout << "Answer: " << answer << "\n";
+    std::cout << "Answer 1: " << answer_1 << "\n";
+    std::cout << "Answer 2: " << answer_2 << "\n";
     return 0;
 
 }
