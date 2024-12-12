@@ -3,6 +3,7 @@
 
 #include<cmath>
 #include<iostream>
+#include<array>
 
 template<typename T>
 class Vec2 {
@@ -90,5 +91,15 @@ class Vec2 {
         }
 
 };
+
+template<typename T>
+std::array<Vec2<T>, 4> create_direction_vectors() {
+    return {
+        Vec2<T>(0, 1),
+        Vec2<T>(0, -1),
+        Vec2<T>(1, 0),
+        Vec2<T>(-1, 0),
+    };
+}
 
 #endif
