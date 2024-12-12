@@ -50,7 +50,8 @@ int main() {
     }
 
 
-#ifndef PART_ONE
+    auto part_1_left_column = left_column;
+    auto part_1_right_column = right_column;
     std::cout << "Delta\tLeft\tRight\n";
     int64_t sum = 0;
     while(true) {
@@ -65,13 +66,13 @@ int main() {
             int64_t index = 0;
         } min_right;
 
-        for(size_t i = 0 ; i < left_column.size() ; i++) {
-            if(min_left.value > left_column[i]) {
-                min_left.value = left_column[i];
+        for(size_t i = 0 ; i < part_1_left_column.size() ; i++) {
+            if(min_left.value > part_1_left_column[i]) {
+                min_left.value = part_1_left_column[i];
                 min_left.index = i;
             }
-            if(min_right.value > right_column[i]) {
-                min_right.value = right_column[i];
+            if(min_right.value > part_1_right_column[i]) {
+                min_right.value = part_1_right_column[i];
                 min_right.index = i;
             }
         }
@@ -83,8 +84,8 @@ int main() {
             break;
         }
 
-        left_column[min_left.index] = INT64_MAX;
-        right_column[min_right.index] = INT64_MAX;
+        part_1_left_column[min_left.index] = INT64_MAX;
+        part_1_right_column[min_right.index] = INT64_MAX;
 
 
         int64_t delta = std::abs(min_right.value - min_left.value);
@@ -96,11 +97,9 @@ int main() {
 
     }
 
-    std::cout << "Answer: " << sum << "\n";
+    std::cout << "Answer 1: " << sum << "\n";
 
 
-#else
-#ifdef PART_TWO
 
     int64_t similiarity = 0;
     for(int64_t l_number : left_column) {
@@ -110,13 +109,7 @@ int main() {
         similiarity += count * l_number;
     }
 
-    std::cout << "Answer: " << similiarity << "\n";
-
-#else
-#error "You have to define either PART_ONE or PART_TWO"
-#endif
-#endif
-
+    std::cout << "Answer 2: " << similiarity << "\n";
 
     return 0;
 
