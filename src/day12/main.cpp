@@ -52,7 +52,7 @@ class Plot {
             Sides sides;
 
             for(const auto& perimeter_tile : perimeter) {
-                // Horizontal
+                // Vertical
                 if((perimeter_tile.first - perimeter_tile.second).abs() == Vec2<IntType>(1, 0)) {
                     auto& vertical = sides.vertical;
 
@@ -97,7 +97,7 @@ class Plot {
                     vertical.push_back(side);
                 }
 
-                // Vertical
+                // Horizontal
                 if((perimeter_tile.first - perimeter_tile.second).abs() == Vec2<IntType>(0, 1)) {
                     auto& horizontal = sides.horizontal;
 
@@ -140,12 +140,9 @@ class Plot {
                         }
                     }
                     horizontal.push_back(vector);
-                    
                 }
             }
-
             return sides.vertical.size() + sides.horizontal.size();
-
         }
 
         IntType calculate_price() const {
@@ -203,10 +200,6 @@ int main() {
         auto input = read_file("input.txt");
         auto lines = StringUtil::split_by_character(input, '\n');
 
-        for(auto line : lines) {
-            std::cout << line << "\n";
-        }
-
         std::vector<Plot> plots;
         plots.reserve(1024);
 
@@ -219,23 +212,13 @@ int main() {
             }
         }
 
-        std::cout << "Plant\tPrice 1\tPrice 2\tArea\tSides\tPerimeter\n";
-
         IntType answer_1 = 0;
         IntType answer_2 = 0;
         for(const auto& plot : plots) {
             const auto price = plot.calculate_price();
-            const auto perimeter = plot.calculate_perimeter();
             const auto area = plot.plot.size();
             const auto sides = plot.get_sides();
             const auto price_2 = sides * area;
-            std::cout 
-                << plot.plant << "\t" 
-                << price << "\t" 
-                << price_2 << "\t" 
-                << area << "\t" 
-                << sides << "\t" 
-                << perimeter << "\n";
             answer_1 += price;
             answer_2 += price_2;
         }
