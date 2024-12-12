@@ -26,6 +26,13 @@ class Vec2 {
                 );
         }
 
+        constexpr Vec2<T> abs() const {
+            return Vec2<T>(
+                std::abs(x),
+                std::abs(y)
+            );
+        }
+
         Vec2<float> normalize() const {
 
             const float float_x = (float) x;
@@ -93,7 +100,7 @@ class Vec2 {
 };
 
 template<typename T>
-std::array<Vec2<T>, 4> create_direction_vectors() {
+constexpr std::array<Vec2<T>, 4> create_direction_vectors() {
     return {
         Vec2<T>(0, 1),
         Vec2<T>(0, -1),

@@ -1,4 +1,5 @@
 #include<iostream>
+#include<map>
 #include"../util/file_io.hpp"
 #include"../util/string_util.hpp"
 #include"../util/vec2.hpp"
@@ -6,8 +7,31 @@
 
 using IntType = int64_t;
 
+struct Sides {
+    std::vector<std::vector<std::pair<Vec2<IntType>, Vec2<IntType>>>> vertical;
+    std::vector<std::vector<std::pair<Vec2<IntType>, Vec2<IntType>>>> horizontal;
+};
+
 class Plot {
     public:
+
+        std::vector<std::pair<Vec2<IntType>, Vec2<IntType>>> get_perimeter() const {
+            std::vector<std::pair<Vec2<IntType>, Vec2<IntType>>> perimeter;
+            perimeter.reserve(plot.size());
+            for(const auto& tile : plot) {
+                for(const auto direction : create_direction_vectors<IntType>()) {
+                    const auto find_result = std::find(plot.begin(), plot.end(), direction+tile);
+                    if(find_result == plot.end()) {
+                        perimeter.push_back({
+                            tile,
+                            direction+tile
+                        });
+                    }
+                }
+            }
+            perimeter.shrink_to_fit();
+            return perimeter;
+        }
 
         IntType calculate_perimeter() const {
             IntType perimeter = 0;
@@ -20,6 +44,120 @@ class Plot {
                 }
             }
             return perimeter;
+        }
+
+        IntType get_sides() const {
+
+            const auto perimeter = get_perimeter();
+            Sides sides;
+
+            for(const auto& perimeter_tile : perimeter) {
+                // Horizontal
+                if((perimeter_tile.first - perimeter_tile.second).abs() == Vec2<IntType>(1, 0)) {
+                    auto& vertical = sides.vertical;
+
+                    const auto existing = std::find_if(vertical.begin(), vertical.end(), 
+                        [&perimeter_tile](const auto& side){
+                            return std::find_if(side.begin(), side.end(), 
+                                [&perimeter_tile](const auto& tile){
+                                    return perimeter_tile == tile;
+                                }) != side.end();
+                        }) != vertical.end();
+
+                    if(existing) {
+                        continue;
+                    }
+
+                    bool handle_up = true;
+                    bool handle_down = true;
+                    std::vector<std::pair<Vec2<IntType>, Vec2<IntType>>> side{perimeter_tile};
+                    for(IntType i = 1 ; i < 1000 ; i++) {
+                        const auto up = std::find_if(perimeter.begin(), perimeter.end(), 
+                            [&perimeter_tile, &i](const auto& tile){
+                                const auto delta_first = perimeter_tile.first + Vec2<IntType>(0, 1) * i;
+                                const auto delta_second = perimeter_tile.second + Vec2<IntType>(0, 1) * i;
+                                return delta_first == tile.first && delta_second == tile.second;
+                            });
+                        const auto down = std::find_if(perimeter.begin(), perimeter.end(), 
+                            [&perimeter_tile, &i](const auto& tile){
+                                const auto delta_first = perimeter_tile.first + Vec2<IntType>(0, -1) * i;
+                                const auto delta_second = perimeter_tile.second + Vec2<IntType>(0, -1) * i;
+                                return delta_first == tile.first && delta_second == tile.second;
+                            });
+                        if(up == perimeter.end()) {
+                            handle_up = false;
+                        } 
+                        else if(handle_up) {
+                            side.push_back(*up);
+                        }
+                        if(down == perimeter.end()) {
+                            handle_down = false;
+                        } 
+                        else if(handle_down) {
+                            side.push_back(*down);
+                        }
+                        if(!handle_down && !handle_up) {
+                            break;
+                        }
+                    }
+                    vertical.push_back(side);
+                }
+
+                // Vertical
+                if((perimeter_tile.first - perimeter_tile.second).abs() == Vec2<IntType>(0, 1)) {
+                    auto& horizontal = sides.horizontal;
+
+                    const auto existing = std::find_if(horizontal.begin(), horizontal.end(), 
+                        [&perimeter_tile](const auto& side){
+                            return std::find_if(side.begin(), side.end(), 
+                                [&perimeter_tile](const auto& tile){
+                                    return perimeter_tile == tile;
+                                }) != side.end();
+                        }) != horizontal.end();
+
+                    if(existing) {
+                        continue;
+                    }
+
+                    bool handle_right = true;
+                    bool handle_left = true;
+                    std::vector<std::pair<Vec2<IntType>, Vec2<IntType>>> vector{perimeter_tile};
+                    for(IntType i = 1 ; i < 1000 ; i++) {
+                        const auto right = std::find_if(perimeter.begin(), perimeter.end(), 
+                            [&perimeter_tile, &i](const auto& tile){
+                                const auto delta_first = perimeter_tile.first + Vec2<IntType>(1, 0) * i;
+                                const auto delta_second = perimeter_tile.second + Vec2<IntType>(1, 0) * i;
+                                return delta_first == tile.first && delta_second == tile.second;
+                            });
+                        const auto left = std::find_if(perimeter.begin(), perimeter.end(), 
+                            [&perimeter_tile, &i](const auto& tile){
+                                const auto delta_first = perimeter_tile.first + Vec2<IntType>(-1, 0) * i;
+                                const auto delta_second = perimeter_tile.second + Vec2<IntType>(-1, 0) * i;
+                                return delta_first == tile.first && delta_second == tile.second;
+                            });
+                        if(right == perimeter.end()) {
+                            handle_right = false;
+                        } 
+                        else if(handle_right) {
+                            vector.push_back(*right);
+                        }
+                        if(left == perimeter.end()) {
+                            handle_left = false;
+                        } 
+                        else if(handle_left) {
+                            vector.push_back(*left);
+                        }
+                        if(!handle_left && !handle_right) {
+                            break;
+                        }
+                    }
+                    horizontal.push_back(vector);
+                    
+                }
+            }
+
+            return sides.vertical.size() + sides.horizontal.size();
+
         }
 
         IntType calculate_price() const {
@@ -93,24 +231,30 @@ int main() {
             }
         }
 
-        std::cout << "Plant\tPrice\tArea\tPerimeter\n";
+        std::cout << "Plant\tPrice 1\tPrice 2\tArea\tSides\tPerimeter\n";
 
         IntType answer_1 = 0;
+        IntType answer_2 = 0;
         for(const auto& plot : plots) {
             const auto price = plot.calculate_price();
             const auto perimeter = plot.calculate_perimeter();
             const auto area = plot.plot.size();
+            const auto sides = plot.get_sides();
+            const auto price_2 = sides * area;
             std::cout 
                 << plot.plant << "\t" 
                 << price << "\t" 
+                << price_2 << "\t" 
                 << area << "\t" 
+                << sides << "\t" 
                 << perimeter << "\n";
             answer_1 += price;
+            answer_2 += price_2;
         }
 
 
         std::cout << "Answer 1: " << answer_1 << "\n";
-        std::cout << "Answer 2: " << "Unimplemented" << "\n";
+        std::cout << "Answer 2: " << answer_2 << "\n";
 
     }
     catch(std::exception e) {
