@@ -129,7 +129,6 @@ int main() {
 
         if(floor(x_part_2) == x_part_2 && floor(y_part_2) == y_part_2) {
             answer_2 += x_part_2 * 3 + y_part_2;
-            std::cout << game.a << "\t" << game.b << "\n";
         }
 
     }
