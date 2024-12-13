@@ -105,27 +105,37 @@ int main() {
     auto games = parse_input(lines);
 
     IntType answer_1 = 0;
+    uint64_t answer_2 = 0;
     for(const auto& game : games) {
 
-        float a1 = game.a.x;
-        float a2 = game.a.y;
-        float b1 = game.b.x;
-        float b2 = game.b.y;
-        float c1 = game.target.x;
-        float c2 = game.target.y;
+        double a1 = game.a.x;
+        double a2 = game.a.y;
+        double b1 = game.b.x;
+        double b2 = game.b.y;
+        double c1 = game.target.x;
+        double c2 = game.target.y;
+        double c1_part_2 = game.target.x + 10000000000000;
+        double c2_part_2 = game.target.y + 10000000000000;
 
-        float x = (-c2 * b1 + c1 * b2) / (a1 * b2 - a2 * b1);
-        float y = (c2 - x * a2) / b2;
+        double x_part_1 = (-c2 * b1 + c1 * b2) / (a1 * b2 - a2 * b1);
+        double y_part_1 = (c2 - x_part_1 * a2) / b2;
 
-        if(floor(x) == x && floor(y) == y) {
-            answer_1 += x * 3 + y;
-            std::cout << x << "\t" << y << "\n";
+        double x_part_2 = (-c2_part_2 * b1 + c1_part_2 * b2) / (a1 * b2 - a2 * b1);
+        double y_part_2 = (c2_part_2 - x_part_2 * a2) / b2;
+
+        if(floor(x_part_1) == x_part_1 && floor(y_part_1) == y_part_1) {
+            answer_1 += x_part_1 * 3 + y_part_1;
+        }
+
+        if(floor(x_part_2) == x_part_2 && floor(y_part_2) == y_part_2) {
+            answer_2 += x_part_2 * 3 + y_part_2;
+            std::cout << game.a << "\t" << game.b << "\n";
         }
 
     }
 
     std::cout << "Answer 1: " << answer_1 << "\n";
-    std::cout << "Answer 2: " << "Not implemented" << "\n";
+    std::cout << "Answer 2: " << answer_2 << "\n";
 
 
     return 0;
