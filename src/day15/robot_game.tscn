@@ -1,0 +1,91 @@
+[gd_scene load_steps=4 format=3 uid="uid://bpmr14rx2rhro"]
+
+[ext_resource type="Script" path="res://robot_game.gd" id="1_464oj"]
+[ext_resource type="Script" path="res://Game.gd" id="2_tpfyr"]
+[ext_resource type="FontFile" uid="uid://d3rya550ft6mm" path="res://MartianMono-Regular.ttf" id="3_0wqon"]
+
+[node name="RobotGame" type="Node" node_paths=PackedStringArray("output_label")]
+script = ExtResource("1_464oj")
+output_label = NodePath("Control/Label")
+
+[node name="Game" type="Node2D" parent="." node_paths=PackedStringArray("output_label", "gps_output_label")]
+script = ExtResource("2_tpfyr")
+output_label = NodePath("../Control/Label")
+gps_output_label = NodePath("../Control/Label2")
+
+[node name="Timer" type="Timer" parent="Game"]
+wait_time = 0.2
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Button" type="Button" parent="Control/VBoxContainer"]
+layout_mode = 2
+text = "Load Input"
+
+[node name="Button2" type="Button" parent="Control/VBoxContainer"]
+layout_mode = 2
+text = "Update"
+
+[node name="Button3" type="Button" parent="Control/VBoxContainer"]
+layout_mode = 2
+text = "Start"
+
+[node name="Button4" type="Button" parent="Control/VBoxContainer"]
+layout_mode = 2
+text = "Fast"
+
+[node name="Button5" type="Button" parent="Control/VBoxContainer"]
+layout_mode = 2
+text = "Solve"
+
+[node name="HSlider" type="HSlider" parent="Control/VBoxContainer"]
+layout_mode = 2
+max_value = 30.0
+value = 20.0
+
+[node name="Label" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -0.5
+offset_top = -6.0
+offset_right = 0.5
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("3_0wqon")
+
+[node name="Label2" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -6.0
+offset_right = 177.0
+offset_bottom = 6.0
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("3_0wqon")
+theme_override_font_sizes/font_size = 27
+
+[connection signal="timeout" from="Game/Timer" to="Game" method="update"]
+[connection signal="pressed" from="Control/VBoxContainer/Button" to="." method="show_input_loader"]
+[connection signal="pressed" from="Control/VBoxContainer/Button2" to="Game" method="update"]
+[connection signal="pressed" from="Control/VBoxContainer/Button3" to="Game" method="toggle_timer"]
+[connection signal="pressed" from="Control/VBoxContainer/Button4" to="Game" method="toggle_fast"]
+[connection signal="pressed" from="Control/VBoxContainer/Button5" to="Game" method="insta_solve"]
+[connection signal="value_changed" from="Control/VBoxContainer/HSlider" to="." method="_on_h_slider_value_changed"]
