@@ -5,6 +5,8 @@
 #include<iostream>
 #include<array>
 
+#include"direction.hpp"
+
 template<typename T>
 class Vec2 {
     public:
@@ -64,6 +66,28 @@ class Vec2 {
         void operator+=(const Vec2<T>& vector) {
             x += vector.x;
             y += vector.y;
+        }
+
+        constexpr Direction get_direction() const {
+            if(x == 0 && y != 0) {
+                if(y > 0) {
+                    return Direction::Up;
+                }
+                else {
+                    return Direction::Down;
+                }
+            }
+            else if(x != 0 && y == 0) {
+                if(x > 0) {
+                    return Direction::Right;
+                }
+                else {
+                    return Direction::Left;
+                }
+            }
+            else {
+                throw std::exception("Directions are only supported for axis wise directions");
+            }
         }
 
         friend Vec2<T> operator/(const Vec2<T>& l, const T& r) {
