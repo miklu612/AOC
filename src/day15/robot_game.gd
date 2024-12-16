@@ -2,6 +2,11 @@ extends Node
 
 @export var output_label: Label
 
+var is_part_2 := false
+
+func toggle_part_2(toggled: bool):
+	is_part_2 = toggled
+
 func show_input_loader() -> void:
 	var file_dialog: FileDialog = FileDialog.new()
 	file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
@@ -29,11 +34,23 @@ func load_input(path: String) -> void:
 		else:
 			for j in range(len(line)):
 				if line[j] == '#':
-					walls.push_back(Vector2(j, i))
+					if not is_part_2:
+						walls.append(Vector2(j, i))
+					else:
+						walls.append(Vector2(j*2, i))
+						walls.append(Vector2(j*2+1, i))
+						print("p2 added")
 				elif line[j] == "O":
-					blocks.push_back(Vector2(j, i))
+					if is_part_2:
+						blocks.append(Vector2(j*2, i))
+					else:
+						blocks.append(Vector2(j, i))
 				elif line[j] == '@':
-					robot = Vector2(j, i)
+					if is_part_2:
+						robot = Vector2(j*2, i)
+					else:
+						robot = Vector2(j, i)
+	
 	
 	new_index += 1
 	
@@ -45,7 +62,7 @@ func load_input(path: String) -> void:
 		else:
 			moves += line
 			
-	$Game.setup(blocks, robot, moves, walls)
+	$Game.setup(blocks, robot, moves, walls, is_part_2)
 
 
 func _on_h_slider_value_changed(value):

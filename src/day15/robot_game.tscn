@@ -49,6 +49,10 @@ text = "Fast"
 layout_mode = 2
 text = "Solve"
 
+[node name="Button6" type="CheckButton" parent="Control/VBoxContainer"]
+layout_mode = 2
+text = "Day 2-ify"
+
 [node name="HSlider" type="HSlider" parent="Control/VBoxContainer"]
 layout_mode = 2
 max_value = 30.0
@@ -88,4 +92,5 @@ theme_override_font_sizes/font_size = 27
 [connection signal="pressed" from="Control/VBoxContainer/Button3" to="Game" method="toggle_timer"]
 [connection signal="pressed" from="Control/VBoxContainer/Button4" to="Game" method="toggle_fast"]
 [connection signal="pressed" from="Control/VBoxContainer/Button5" to="Game" method="insta_solve"]
+[connection signal="toggled" from="Control/VBoxContainer/Button6" to="." method="toggle_part_2"]
 [connection signal="value_changed" from="Control/VBoxContainer/HSlider" to="." method="_on_h_slider_value_changed"]
