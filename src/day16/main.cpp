@@ -12,7 +12,9 @@ class Navigator {
     public:
         Vec2<int> position;
         int score;
+        int runs;
         Direction direction;
+        std::vector<Vec2<int>> path;
 };
 
 int main() {
@@ -48,12 +50,41 @@ int main() {
         starter.position = start;
         starter.direction = Direction::Right;
         starter.score = 0;
+        starter.runs = 0;
+        starter.path = {start};
         std::vector<Navigator> navigators;
         navigators.push_back(starter);
+
+        int answer_1 = maze[end.y][end.x];
+        int answer_2 = 999999;
+        int same_scores = 0;
+        int threshold = 1000;
+        int min_score = INT_MAX;
+        std::vector<Vec2<int>> best_paths;
 
         do {
             std::vector<Navigator> new_navigators;
             for(const auto& navigator : navigators) {
+                if(navigator.position == end) {
+                    if(navigator.score < min_score) {
+                        min_score = navigator.score;
+                        best_paths.clear();
+                        for(const auto& path : navigator.path) {
+                            best_paths.push_back(path);
+                        }
+                    }
+                    else if(navigator.score == min_score) {
+                        for(const auto& path : navigator.path) {
+                            const auto exists = std::find(
+                                best_paths.begin(), best_paths.end(),
+                                path) != best_paths.end();
+                            if(!exists) {
+                                best_paths.push_back(path);
+                            }
+                        }
+                    }
+                    continue;
+                }
                 for(const auto& dir : create_direction_vectors<int>()) {
                     const auto new_pos = navigator.position + dir;
                     if(lines[new_pos.y][new_pos.x] == '#') {
@@ -64,12 +95,17 @@ int main() {
                     if(navigator.direction != dir.get_direction()) {
                         new_value += 1000;
                     }
-                    if(new_value < value) {
-                        value = new_value;
+                    if(new_value - threshold <= value) {
+                        if(new_value < value) {
+                            value = new_value;
+                        }
                         Navigator new_navigator;
                         new_navigator.direction = dir.get_direction();
                         new_navigator.position = new_pos;
                         new_navigator.score = new_value;
+                        new_navigator.runs = navigator.runs + 1;
+                        new_navigator.path = navigator.path;
+                        new_navigator.path.push_back(new_pos);
                         new_navigators.push_back(new_navigator);
                     }
                 }
@@ -77,7 +113,11 @@ int main() {
             navigators = new_navigators;
         } while(navigators.size() > 0);
 
-        std::cout << maze[end.y][end.x] << "\n";
+        answer_1 = maze[end.y][end.x];
+        answer_2 = best_paths.size();
+
+        std::cout << "Answer 1: " << answer_1 << "\n";
+        std::cout << "Answer 2: " << answer_2 << "\n";
 
     }
     catch(std::exception e) {
